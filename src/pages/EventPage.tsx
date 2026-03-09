@@ -67,27 +67,31 @@ export default function EventPage() {
     // displayed in the shopping cart only.  See README for rationale.
     let transform;
     if (mode === "full") {
+      // Use up to 1200px on the long side for full-size previews. We omit the
+      // `format` option here because Supabase automatically serves WebP when
+      // supported.  Quality 80 provides good fidelity for large images.
       transform = {
         width: 1200,
         height: 1200,
         resize: "contain" as const,
         quality: 80,
-        format: "webp" as const,
       };
     } else if (mode === "cart") {
+      // Very small thumbnail for the shopping cart. Only set width and quality;
+      // height is omitted so aspect ratio is preserved.
       transform = {
         width: 320,
         quality: 60,
-        format: "webp" as const,
       };
     } else {
-      // thumb / grid preview
+      // thumb / grid preview. We keep these very small (300px) so that the
+      // gallery loads quickly.  Supabase will preserve aspect ratio via the
+      // `resize: contain` option.
       transform = {
-        width: 600,
-        height: 600,
+        width: 300,
+        height: 300,
         resize: "contain" as const,
-        quality: 65,
-        format: "webp" as const,
+        quality: 60,
       };
     }
     const { data } = supabase.storage.from("event-photos").getPublicUrl(storagePath, { transform });

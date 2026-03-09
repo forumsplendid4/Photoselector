@@ -82,13 +82,13 @@ export default function EventPhotosManagerDialog({
     // longest side.  The "contain" resize mode preserves aspect ratio while
     // fitting within the specified dimensions.  Quality 65 provides a good
     // balance between fidelity and file size.
+    // For the admin grid, use very small previews to keep the list responsive.
     const { data } = supabase.storage.from("event-photos").getPublicUrl(path, {
       transform: {
-        width: 600,
-        height: 600,
+        width: 300,
+        height: 300,
         resize: "contain" as const,
-        quality: 65,
-        format: "webp" as const,
+        quality: 60,
       },
     });
     return data.publicUrl;
