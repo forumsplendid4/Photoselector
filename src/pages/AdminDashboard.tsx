@@ -217,7 +217,14 @@ export default function AdminDashboard() {
 
           const { error: uploadError } = await supabase.storage
             .from("event-photos")
-            .upload(previewPath, watermarkedBlob, { contentType: "image/jpeg" });
+            .upload(previewPath, watermarkedBlob, {
+              contentType: "image/jpeg",
+              // Cache previews for one year.  This dramatically reduces egress
+              // usage by allowing browsers and edge caches to reuse the same
+              // downloaded image instead of repeatedly fetching it from
+              // Supabase.  See docs for more details.
+              cacheControl: "31536000",
+            });
 
           if (cancelRef.current) break;
 

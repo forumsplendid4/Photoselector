@@ -77,8 +77,19 @@ export default function EventPhotosManagerDialog({
   };
 
   const getThumb = (path: string) => {
+    // Generate a moderately sized preview for the admin photo grid.  We use
+    // WebP format for better compression and scale images to 600px on the
+    // longest side.  The "contain" resize mode preserves aspect ratio while
+    // fitting within the specified dimensions.  Quality 65 provides a good
+    // balance between fidelity and file size.
     const { data } = supabase.storage.from("event-photos").getPublicUrl(path, {
-      transform: { width: 320, quality: 60 },
+      transform: {
+        width: 600,
+        height: 600,
+        resize: "contain" as const,
+        quality: 65,
+        format: "webp" as const,
+      },
     });
     return data.publicUrl;
   };

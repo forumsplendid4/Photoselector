@@ -30,7 +30,11 @@ interface PrintSize {
 
 type PhotoUrlMode = "thumb" | "full" | "cart";
 
-const PAGE_SIZE = 40;
+// Number of photos to fetch per batch when scrolling.  A smaller page size
+// reduces the initial network load and memory usage, which is particularly
+// important on mobile devices.  We opted for 30 rather than the previous 40
+// to strike a balance between user experience and bandwidth.
+const PAGE_SIZE = 30;
 
 export default function EventPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -54,13 +58,38 @@ export default function EventPage() {
   }, [slug]);
 
   const buildPhotoUrl = useCallback((storagePath: string, mode: PhotoUrlMode = "thumb") => {
-    const transform =
-      mode === "full"
-        ? { width: 1800, height: 1800, resize: "contain" as const, quality: 80 }
-        : mode === "cart"
-          ? { width: 320, quality: 55 }
-          : { width: 500, height: 500, resize: "contain" as const, quality: 60 };
-
+    // Define transformations for each mode.  We serve images as WebP where
+    // possible to dramatically reduce file size on supported browsers.  Thumb
+    // images are 600px on the longest side, which keeps the UI snappy while
+    // preserving enough detail.  Full images max out at 1200px, since larger
+    // sizes rarely provide visible benefits on typical screens but incur
+    // significant bandwidth costs.  Cart images remain small since they are
+    // displayed in the shopping cart only.  See README for rationale.
+    let transform;
+    if (mode === "full") {
+      transform = {
+        width: 1200,
+        height: 1200,
+        resize: "contain" as const,
+        quality: 80,
+        format: "webp" as const,
+      };
+    } else if (mode === "cart") {
+      transform = {
+        width: 320,
+        quality: 60,
+        format: "webp" as const,
+      };
+    } else {
+      // thumb / grid preview
+      transform = {
+        width: 600,
+        height: 600,
+        resize: "contain" as const,
+        quality: 65,
+        format: "webp" as const,
+      };
+    }
     const { data } = supabase.storage.from("event-photos").getPublicUrl(storagePath, { transform });
     return data.publicUrl;
   }, []);
